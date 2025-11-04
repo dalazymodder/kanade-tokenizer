@@ -1,0 +1,197 @@
+seed_everything: 42
+
+trainer:
+  accelerator: auto
+  devices: auto
+  precision: bf16-mixed
+  max_steps: 200000
+  default_root_dir: exp
+  log_every_n_steps: 50
+  callbacks:
+    - class_path: lightning.pytorch.callbacks.ModelCheckpoint
+      init_args:
+        filename: "step={step}-loss={val/gen/mel_l1:.4f}"
+        monitor: val/gen/mel_l1
+        mode: min
+        save_last: true
+        auto_insert_metric_name: false
+    - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+      init_args:
+        logging_interval: step
+    - class_path: lightning.pytorch.callbacks.ModelSummary
+      init_args:
+        max_depth: 3
+
+model:
+  class_path: kanade_tokenizer.pipeline.KanadePipeline
+  init_args:
+    ssl_feature_extractor:
+      class_path: kanade_tokenizer.module.ssl_extractor.SSLFeatureExtractor
+      init_args:
+        model_name: wavlm_base_plus
+        output_layer: 9 # Use at most 9 layers
+        sample_rate: 24000 # Consistent to the target sample rate for reconstruction
+
+    local_encoder:
+      class_path: kanade_tokenizer.module.transformer.Transformer
+      init_args:
+        dim: 768
+        n_layers: 6
+        n_heads: 12
+        window_size: 125
+        use_rope: true
+        rope_theta: 10000.0
+        max_seq_len: 512
+        use_flash_attention: true
+
+    local_quantizer:
+      class_path: kanade_tokenizer.module.fsq.FiniteScalarQuantizer
+      init_args:
+        input_dim: 768 # Must match local encoder output dimension
+        output_dim: 768 # Must match feature decoder input dimension
+        levels: [8, 8, 8, 5, 5] # 12800
+
+    feature_decoder:
+      class_path: kanade_tokenizer.module.transformer.Transformer
+      init_args:
+        dim: 768
+        n_layers: 6
+        n_heads: 12
+        window_size: 125
+        use_rope: true
+        rope_theta: 10000.0
+        max_seq_len: 512
+        use_flash_attention: true
+
+    global_encoder:
+      class_path: kanade_tokenizer.module.global_encoder.GlobalEncoder
+      init_args:
+        input_channels: 768 # WavLM base plus feature dimension
+        output_channels: 128
+        num_layers: 4
+        dim: 384
+        intermediate_dim: 1152
+
+    mel_prenet:
+      class_path: kanade_tokenizer.module.transformer.Transformer
+      init_args:
+        dim: 768
+        output_dim: 512
+        n_layers: 6
+        n_heads: 12
+        window_size: 65
+        use_rope: true
+        rope_theta: 10000.0
+        max_seq_len: 512
+        use_flash_attention: true
+
+    mel_decoder:
+      class_path: kanade_tokenizer.module.transformer.Transformer
+      init_args:
+        dim: 512
+        output_dim: 100 # Number of mel frequency bins
+        n_layers: 6
+        n_heads: 8
+        window_size: 65
+        use_rope: true
+        rope_theta: 10000.0
+        max_seq_len: 512
+        adanorm_condition_dim: 128 # Must match global encoder output dimension
+        use_adaln_zero: true # Use AdaLNZero for conditioning
+        use_flash_attention: true
+
+    mel_postnet:
+      class_path: kanade_tokenizer.module.postnet.PostNet
+      init_args:
+        input_channels: 100 # Number of mel frequency bins
+        channels: 256
+        kernel_size: 7
+        num_layers: 4
+        use_layer_norm: true
+
+    model_config:
+      # SSL Feature settings
+      local_ssl_layers: [6, 9]
+      global_ssl_layers: [1, 2]
+      normalize_ssl_features: true
+
+      # Down/up-sampling settings
+      downsample_factor: 2
+      mel_upsample_factor: 4
+      use_conv_downsample: true
+      mel_interpolation_mode: linear
+
+      # Audio settings
+      sample_rate: 24000
+      n_fft: 1024
+      hop_length: 256
+      n_mels: 100
+      padding: center
+
+    pipeline_config:
+      # Training control
+      train_feature: true
+      train_mel: true
+
+      # Audio settings
+      audio_length: 138240
+
+      # Optimization settings
+      lr: 2e-4
+      weight_decay: 1e-4
+      betas: [0.9, 0.99]
+      gradient_clip_val: 1.0
+
+      # LR scheduling parameters
+      warmup_percent: 0.1
+      lr_div_factor: 10.0
+      lr_final_div_factor: 1.0
+      anneal_mode: cos
+
+      # Loss weights
+      feature_l1_weight: 0.0
+      feature_l2_weight: 30.0
+      mel_l1_weight: 30.0
+      mel_l2_weight: 0.0
+      adv_weight: 0.0
+      feature_matching_weight: 0.0
+
+      # GAN settings
+      use_discriminator: false
+
+      # Other
+      log_mel_samples: 10
+      use_torch_compile: true
+
+data:
+  class_path: kanade_tokenizer.data.datamodule.AudioDataModule
+  init_args:
+    train_config:
+      csv_path: data/libritts_train.csv
+      audio_root: /path/to/LibriTTS
+      sample_rate: 24000
+      chunk_size: 138240
+      chunk_hop_size: 34560
+      batch_size: 128
+      num_workers: 4
+      pin_memory: true
+      shuffle: true
+      drop_last: true
+
+    val_config:
+      csv_path: data/libritts_dev.csv
+      audio_root: /path/to/LibriTTS
+      sample_rate: 24000
+      chunk_size: 138240
+      batch_size: 128
+      num_workers: 4
+      pin_memory: true
+
+    test_config:
+      csv_path: data/libritts_test.csv
+      audio_root: /path/to/LibriTTS
+      sample_rate: 24000
+      chunk_size: 138240
+      batch_size: 128
+      num_workers: 4
+      pin_memory: true
