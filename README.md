@@ -119,11 +119,11 @@ If you want to use WandB for logging, you can set the WandB logger object provid
 ```yaml
 trainer:
   logger:
-  class_path: lightning.pytorch.loggers.WandbLogger
-  init_args:
-    name: run_name
-    project: project_name
-    save_dir: /path/to/log/dir
+    class_path: lightning.pytorch.loggers.WandbLogger
+    init_args:
+      name: run_name
+      project: project_name
+      save_dir: /path/to/log/dir
 ```
 
 ### Fine-tuning
