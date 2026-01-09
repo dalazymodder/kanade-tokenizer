@@ -18,12 +18,17 @@ Kanade is a speech tokenizer that encodes speech into compact content tokens and
 - `demo.ipynb`: A demo notebook showing how to use the model for inference.
 - `cli.py`: Main entrypoint for the Lightning framework, used for training, validation, testing, and prediction.
 
+## Updates
+
+- **2026-01-09**: Released `kanade-25hz-clean` model trained on [LibriTTS-R](https://arxiv.org/abs/2305.18802) with [HiFT vocoder](https://arxiv.org/abs/2309.09493) for better audio quality. LibriTTS-R is a restored version of LibriTTS removing noise, so the model trained on it can produce cleaner synthesis. Because of that, however, this version can no longer faithfully reflect the recording environment such as background noise and microphone characteristics. Also, the vocoder is changed to the HiFT model used in [CosyVoice 2](https://huggingface.co/FunAudioLLM/CosyVoice2-0.5B) for better quality. The content encoder part remains the same as the previous `kanade-25hz` model. We made tiny code change to support different vocoders during inference (specifically `load_vocoder`). Please refer to the updated usage section below.
+
 ## Models
 
-| Model                                                               | Token Rate | Vocab Size | Bit Rate | Dataset  | SSL Encoder | Vocoder     | Parameters |
-| ------------------------------------------------------------------- | ---------- | ---------- | -------- | -------- | ----------- | ----------- | ---------- |
-| [`kanade-12.5hz`](https://huggingface.co/frothywater/kanade-12.5hz) | 12.5 Hz    | 12800      | 171 bps  | LibriTTS | WavLM-base+ | Vocos 24kHz | 120M       |
-| [`kanade-25hz`](https://huggingface.co/frothywater/kanade-25hz)     | 25 Hz      | 12800      | 341 bps  | LibriTTS | WavLM-base+ | Vocos 24kHz | 118M       |
+| Model                                                                       | Token Rate | Vocab Size | Bit Rate | Dataset    | SSL Encoder | Vocoder     | Parameters |
+| --------------------------------------------------------------------------- | ---------- | ---------- | -------- | ---------- | ----------- | ----------- | ---------- |
+| [`kanade-12.5hz`](https://huggingface.co/frothywater/kanade-12.5hz)         | 12.5 Hz    | 12800      | 171 bps  | LibriTTS   | WavLM-base+ | Vocos 24kHz | 120M       |
+| [`kanade-25hz`](https://huggingface.co/frothywater/kanade-25hz)             | 25 Hz      | 12800      | 341 bps  | LibriTTS   | WavLM-base+ | Vocos 24kHz | 118M       |
+| [`kanade-25hz-clean`](https://huggingface.co/frothywater/kanade-25hz-clean) | 25 Hz      | 12800      | 341 bps  | LibriTTS-R | WavLM-base+ | HiFT 24kHz  | 142M       |
 
 ## Installation
 
@@ -58,11 +63,11 @@ Example code to load the model from HuggingFace Hub and run inference:
 from kanade_tokenizer import KanadeModel, load_audio, load_vocoder, vocode
 
 # Load Kanade model
-model = KanadeModel.from_pretrained("frothywater/kanade-12.5hz")  # or "frothywater/kanade-25hz"
+model = KanadeModel.from_pretrained("frothywater/kanade-25hz-clean")  # or "frothywater/kanade-12.5hz"
 model = model.eval().cuda()
 
 # Load vocoder
-vocoder = load_vocoder().cuda()
+vocoder = load_vocoder(model.config.vocoder_name).cuda()
 
 # Load audio (samples,)
 audio = load_audio("path/to/audio.wav", sample_rate=model.config.sample_rate).cuda()

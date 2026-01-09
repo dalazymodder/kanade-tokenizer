@@ -1,4 +1,5 @@
 import logging
+from typing import Literal
 
 import torch
 import torch.nn as nn
@@ -63,22 +64,43 @@ def load_audio(audio_path: str, sample_rate: int = 24000) -> torch.Tensor:
     return waveform.squeeze(0)  # Remove channel dimension
 
 
-def load_vocoder():
-    from vocos import Vocos
+def load_vocoder(name: Literal["vocos", "hift"] = "vocos") -> torch.nn.Module:
+    if name == "vocos":
+        from vocos import Vocos
 
-    model = Vocos.from_pretrained("charactr/vocos-mel-24khz")
-    model = model.eval()
-    return model
+        model = Vocos.from_pretrained("charactr/vocos-mel-24khz")
+        model = model.eval()
+        return model
+    elif name == "hift":
+        from huggingface_hub import hf_hub_download
+        from .module.hift import HiFTGenerator
+
+        # Download hte HiFT model from FunAudioLLM/CosyVoice2-0.5B
+        model_path = hf_hub_download(repo_id="FunAudioLLM/CosyVoice2-0.5B", filename="hift.pt")
+        model = HiFTGenerator()
+        model.load_weights(model_path)
+        model = model.eval()
+        return model
+    else:
+        raise ValueError(f"Unsupported vocoder name: {name}")
 
 
 def vocode(vocoder, mel_spectrogram: torch.Tensor) -> torch.Tensor:
     """Convert mel spectrogram to waveform using Vocos vocoder.
     Args:
-        vocoder (Vocos): Pretrained Vocos vocoder.
+        vocoder: Pretrained vocoder model.
         mel_spectrogram (torch.Tensor): Input mel spectrogram tensor (..., n_mels, frame).
     Returns:
         torch.Tensor: Generated audio waveform tensor (..., samples).
     """
     mel_spectrogram = mel_spectrogram.to(torch.float32)  # Ensure mel spectrogram is in float32
-    generated_waveform = vocoder.decode(mel_spectrogram)
+
+    vocoder_class_name = vocoder.__class__.__name__
+    if "Vocos" in vocoder_class_name:
+        generated_waveform = vocoder.decode(mel_spectrogram)
+    elif "HiFT" in vocoder_class_name:
+        generated_waveform = vocoder.inference(mel_spectrogram)
+    else:
+        raise ValueError(f"Unsupported vocoder class: {vocoder_class_name}")
+
     return generated_waveform

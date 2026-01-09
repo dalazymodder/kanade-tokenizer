@@ -1,5 +1,6 @@
 import math
 from dataclasses import dataclass
+from typing import Literal
 
 import jsonargparse
 import torch
@@ -36,6 +37,12 @@ class KanadeModelConfig:
     hop_length: int = 256
     n_mels: int = 100
     padding: str = "center"
+    mel_fmin: int = 0  # Minimum frequency for mel spectrograms
+    mel_fmax: int | None = None  # Maximum frequency for mel spectrograms
+    bigvgan_style_mel: bool = False  # Whether to use BigVGAN-style mel spectrograms
+
+    # Vocoder settings
+    vocoder_name: Literal["vocos", "hift"] = "vocos"  # Vocoder to use for waveform synthesis
 
 
 @dataclass
@@ -54,11 +61,11 @@ class KanadeModel(nn.Module):
         ssl_feature_extractor: SSLFeatureExtractor,
         local_encoder: Transformer,
         local_quantizer: FiniteScalarQuantizer,
-        feature_decoder: Transformer | None,
         global_encoder: GlobalEncoder,
         mel_prenet: Transformer,
         mel_decoder: Transformer,
         mel_postnet: PostNet,
+        feature_decoder: Transformer | None = None,
     ):
         super().__init__()
         self.config = config
@@ -335,9 +342,7 @@ class KanadeModel(nn.Module):
     def weights_to_save(self, *, include_modules: list[str]) -> dict[str, torch.Tensor]:
         """Get model weights for saving. Excludes certain modules not needed for inference."""
         excluded_modules = [
-            m
-            for m in ["ssl_feature_extractor", "feature_decoder", "conv_upsample"]
-            if m not in include_modules
+            m for m in ["ssl_feature_extractor", "feature_decoder", "conv_upsample"] if m not in include_modules
         ]
         state_dict = {
             name: param

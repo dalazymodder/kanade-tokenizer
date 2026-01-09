@@ -20,7 +20,7 @@ from .module.global_encoder import GlobalEncoder
 from .module.postnet import PostNet
 from .module.ssl_extractor import SSLFeatureExtractor
 from .module.transformer import Transformer
-from .util import freeze_modules, get_logger
+from .util import freeze_modules, get_logger, load_vocoder, vocode
 
 logger = get_logger()
 
@@ -135,6 +135,9 @@ class KanadePipeline(L.LightningModule):
                 hop_length=model_config.hop_length,
                 n_mels=model_config.n_mels,
                 padding=model_config.padding,
+                fmin=model_config.mel_fmin,
+                fmax=model_config.mel_fmax,
+                bigvgan_style_mel=model_config.bigvgan_style_mel,
             )
 
         # Mel sample storage for logging
@@ -572,19 +575,14 @@ class KanadePipeline(L.LightningModule):
 
     def _setup_vocoder(self):
         try:
-            from vocos import Vocos
-
-            model = Vocos.from_pretrained("charactr/vocos-mel-24khz")
-            return model.eval()
+            return load_vocoder(name=self.model.config.vocoder_name)
         except ImportError:
-            logger.error("Vocos not found. Please install vocos to enable vocoding during validation/prediction.")
+            logger.error("Vocoder could not be loaded. Please install the required dependencies.")
             return None
 
     def vocode(self, mel: torch.Tensor) -> torch.Tensor:
         self.vocoder = self.vocoder.to(mel.device)
-        mel = mel.float()
-        waveform = self.vocoder.decode(mel)  # (B, T)
-
+        waveform = vocode(self.vocoder, mel)
         return waveform.cpu().float()
 
     def on_validation_start(self):
