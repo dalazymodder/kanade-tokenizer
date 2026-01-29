@@ -1,4 +1,4 @@
-# Kanade: Compact Linguistically Rich Speech Tokens for Spoken Language Models
+# Kanade: A Simple Disentangled Tokenizer for Spoken Language Modeling
 
 Kanade is a speech tokenizer that encodes speech into compact content tokens and global embeddings and decodes them back to mel spectrograms.
 
