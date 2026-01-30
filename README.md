@@ -1,6 +1,10 @@
 # Kanade: A Simple Disentangled Tokenizer for Spoken Language Modeling
 
-Kanade is a speech tokenizer that encodes speech into compact content tokens and global embeddings and decodes them back to mel spectrograms.
+[Code](https://github.com/frothywater/kanade-tokenizer) &ensp;
+[Demo](https://frothywater.github.io/kanade-tokenizer/) &ensp;
+[Weights](https://huggingface.co/frothywater/kanade-25hz-clean)
+
+Kanade is a single-layer disentangled speech tokenizer that extracts compact tokens suitable for both generative and discriminative modeling.
 
 ## Project Structure
 
@@ -142,3 +146,6 @@ Then, run the training command:
 ```bash
 uv run cli.py fit --config config/train/your_finetune_config.yaml
 ```
+
+## License
+MIT
