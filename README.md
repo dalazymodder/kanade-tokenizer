@@ -2,10 +2,20 @@ This fork just adds a gradio gui with Kokoro and a sepearte Realtime Gui.
 
 
 To install the fork. Download Python 3.12.
+
+
 Install with pip -r requirements.txt
+
+
 Then install pip install torch==2.9.1 torchvision==0.24.1 torchaudio==2.9.1 --index-url https://download.pytorch.org/whl/cu128
+
+
 for pytorch inference with Nvidia GPU.
+
+
 Much faster with Cuda if using Nvidia for the inference.
+
+
 If using on cpu try to reduce context size to lower cpu useage, but you might get stuttering if you go to low.
 
 
