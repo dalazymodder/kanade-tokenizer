@@ -25,14 +25,13 @@ dlinfo==2.0.0
 docopt==0.6.2
 docstring_parser==0.17.0
 einops==0.8.2
-en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl#sha256=1932429db727d4bff3deed6b34cfc05df17794f4a52eeb26cf8928f7c1a0fb85
+en_core_web_sm
 encodec==0.1.1
 espeakng-loader==0.2.4
 fastapi==0.128.0
 ffmpeg==1.4
 ffmpy==1.0.0
 filelock==3.20.3
-flash_attn @ file:///C:/Users/P/Desktop/kanade/flash_attn-2.8.2%2Bcu128torch2.7-cp312-cp312-win_amd64.whl#sha256=29ec7de7a833944a4ae55400394978579499b42c5111a3250de71aec12d8bc62
 fsspec==2026.1.0
 gradio==6.5.1
 gradio_client==2.0.3
@@ -50,8 +49,6 @@ joblib==1.5.3
 jsonargparse==4.45.0
 jsonschema==4.26.0
 jsonschema-specifications==2025.9.1
-# Editable install with no version control (kanade-tokenizer==0.1.0)
--e c:\users\p\desktop\kanade
 kokoro==0.9.4
 language-tags==1.2.0
 lazy_loader==0.4
@@ -70,7 +67,6 @@ num2words==0.5.14
 numba==0.63.1
 numpy==2.3.5
 orjson==3.11.6
-packaging @ file:///C:/miniconda3/conda-bld/packaging_1761049137378/work
 pandas==3.0.0
 phonemizer-fork==3.3.2
 pillow==12.0.0
@@ -141,3 +137,4 @@ webrtcvad==2.0.10
 wheel==0.46.3
 win32_setctime==1.2.0
 wrapt==2.1.0
+
