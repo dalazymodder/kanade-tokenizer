@@ -25,7 +25,6 @@ dlinfo==2.0.0
 docopt==0.6.2
 docstring_parser==0.17.0
 einops==0.8.2
-en_core_web_sm
 encodec==0.1.1
 espeakng-loader==0.2.4
 fastapi==0.128.0
@@ -115,10 +114,6 @@ thinc==8.3.10
 threadpoolctl==3.6.0
 tokenizers==0.22.2
 tomlkit==0.13.3
-torch==2.9.1+cu128
-torchaudio==2.9.1+cu128
-torchcodec==0.10.0
-torchvision==0.24.1+cu128
 tqdm==4.67.2
 transformers==5.0.0
 typer==0.21.1
@@ -133,7 +128,7 @@ uvicorn==0.40.0
 vocos==0.1.0
 wasabi==1.1.3
 weasel==0.4.3
-webrtcvad==2.0.10
+webrtcvad-wheels
 wheel==0.46.3
 win32_setctime==1.2.0
 wrapt==2.1.0
