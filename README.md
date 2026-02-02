@@ -1,7 +1,7 @@
 This fork just adds a gradio gui with Kokoro and a sepearte Realtime Gui.
 
 
-To install the fork. Download Python 3.12.
+To install the fork. Download Python 3.12.7
 
 
 Install with pip -r requirements.txt
