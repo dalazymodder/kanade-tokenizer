@@ -18,6 +18,10 @@ Much faster with Cuda if using Nvidia for the inference.
 
 If using on cpu try to reduce context size to lower cpu useage, but you might get stuttering if you go to low.
 
+Minor update: Added a space for it here.
+https://huggingface.co/spaces/dalazymodder/Kanade_Tokenizer
+
+
 
 # Kanade: A Simple Disentangled Tokenizer for Spoken Language Modeling
 
